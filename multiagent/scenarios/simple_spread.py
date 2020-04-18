@@ -97,10 +97,12 @@ class SpreadScenario(BaseScenario):
         for entity in world.landmarks:  # world.entities:
             entity_color.append(entity.color)
         # communication of all other agents
-        comm = []
-        other_pos = []
+        teammates = []
         for other in world.agents:
-            if other is agent: continue
-            comm.append(other.state.c)
-            other_pos.append(other.state.p_pos - agent.state.p_pos)
-        return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + entity_pos + other_pos + comm)
+            if other is agent:
+                teammates.append(np.array([0.0] * (1 + world.dim_p + world.dim_c)))
+            else:
+                teammates.append(np.concatenate([[1.0], other.state.p_pos - agent.state.p_pos, other.state.c]))
+            # comm.append(other.state.c)
+            # other_pos.append(other.state.p_pos - agent.state.p_pos)
+        return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + entity_pos + teammates)
