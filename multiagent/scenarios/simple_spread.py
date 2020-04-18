@@ -80,7 +80,7 @@ class SpreadScenario(BaseScenario):
         rew = 0
         for l in world.landmarks:
             dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))) for a in world.agents]
-            rew -= min(dists)
+            rew -= min(dists) / len(world.agents)
         if agent.collide:
             for a in world.agents:
                 if self.is_collision(a, agent):
