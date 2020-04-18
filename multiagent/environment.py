@@ -75,7 +75,7 @@ class MultiAgentEnv(gym.Env):
             self.viewers = [None]
         else:
             self.viewers = [None] * self.n
-        self._reset_render()
+        self.reset_render()
 
     def step(self, action_n):
         obs_n = []
@@ -85,16 +85,16 @@ class MultiAgentEnv(gym.Env):
         self.agents = self.world.policy_agents
         # set action for each agent
         for i, agent in enumerate(self.agents):
-            self._set_action(action_n[i], agent, self.action_space[i])
+            self.set_action(action_n[i], agent, self.action_space[i])
         # advance world state
         self.world.step()
         # record observation for each agent
         for agent in self.agents:
-            obs_n.append(self._get_obs(agent))
-            reward_n.append(self._get_reward(agent))
-            done_n.append(self._get_done(agent))
+            obs_n.append(self.get_obs(agent))
+            reward_n.append(self.get_reward(agent))
+            done_n.append(self.get_done(agent))
 
-            info_n['n'].append(self._get_info(agent))
+            info_n['n'].append(self.get_info(agent))
 
         # all agents get total reward in cooperative case
         reward = np.sum(reward_n)
@@ -107,45 +107,45 @@ class MultiAgentEnv(gym.Env):
         # reset world
         self.reset_callback(self.world)
         # reset renderer
-        self._reset_render()
+        self.reset_render()
         # record observations for each agent
         obs_n = []
         self.agents = self.world.policy_agents
         for agent in self.agents:
-            obs_n.append(self._get_obs(agent))
+            obs_n.append(self.get_obs(agent))
         return obs_n
 
     # get info used for benchmarking
-    def _get_info(self, agent):
+    def get_info(self, agent):
         if self.info_callback is None:
             return {}
         return self.info_callback(agent, self.world)
 
     # get observation for a particular agent
-    def _get_obs(self, agent):
+    def get_obs(self, agent):
         if self.observation_callback is None:
             return np.zeros(0)
         return self.observation_callback(agent, self.world)
 
     # get dones for a particular agent
     # unused right now -- agents are allowed to go beyond the viewing screen
-    def _get_done(self, agent):
+    def get_done(self, agent):
         if self.done_callback is None:
             return False
         return self.done_callback(agent, self.world)
 
     # get reward for a particular agent
-    def _get_reward(self, agent):
+    def get_reward(self, agent):
         if self.reward_callback is None:
             return 0.0
         return self.reward_callback(agent, self.world)
 
     # set env action for a particular agent
-    def _set_action(self, action, agent, action_space, time=None):
+    def set_action(self, action, agent, action_space, time=None):
         agent.action.u = np.zeros(self.world.dim_p)
         agent.action.c = np.zeros(self.world.dim_c)
         # process action
-        if isinstance(action_space, MultiDiscrete):
+        if isinstance(action_space, MultiDiscrete) and not self.discrete_action_input:
             act = []
             size = action_space.high - action_space.low + 1
             index = 0
@@ -192,7 +192,7 @@ class MultiAgentEnv(gym.Env):
         assert len(action) == 0
 
     # reset rendering assets
-    def _reset_render(self):
+    def reset_render(self):
         self.render_geoms = None
         self.render_geoms_xform = None
 

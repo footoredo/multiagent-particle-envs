@@ -3,13 +3,19 @@ from multiagent.core import World, Agent, Landmark
 from multiagent.scenario import BaseScenario
 
 
-class Scenario(BaseScenario):
+class SpreadScenario(BaseScenario):
+    def __init__(self, n_agents, seed=None):
+        self.n_agents = n_agents
+        self._seed = seed
+
+        super(SpreadScenario, self).__init__()
+
     def make_world(self):
         world = World()
         # set any world properties first
         world.dim_c = 2
-        num_agents = 3
-        num_landmarks = 3
+        num_agents = self.n_agents
+        num_landmarks = self.n_agents
         world.collaborative = True
         # add agents
         world.agents = [Agent() for i in range(num_agents)]

@@ -80,7 +80,7 @@ class Agent(Entity):
 
 # multi-agent world
 class World(object):
-    def __init__(self):
+    def __init__(self, seed=None):
         # list of agents and entities (can change at execution-time!)
         self.agents = []
         self.landmarks = []
@@ -97,6 +97,13 @@ class World(object):
         # contact response parameters
         self.contact_force = 1e+2
         self.contact_margin = 1e-3
+
+        self._seed = seed
+        self.rng = np.random.RandomState(seed=seed)
+
+    def set_seed(self, seed):
+        self._seed = seed
+        self.rng = np.random.RandomState(seed=seed)
 
     # return all entities in the world
     @property
@@ -135,7 +142,7 @@ class World(object):
         # set applied forces
         for i,agent in enumerate(self.agents):
             if agent.movable:
-                noise = np.random.randn(*agent.action.u.shape) * agent.u_noise if agent.u_noise else 0.0
+                noise = self.rng.randn(*agent.action.u.shape) * agent.u_noise if agent.u_noise else 0.0
                 p_force[i] = agent.action.u + noise                
         return p_force
 
@@ -173,7 +180,7 @@ class World(object):
         if agent.silent:
             agent.state.c = np.zeros(self.dim_c)
         else:
-            noise = np.random.randn(*agent.action.c.shape) * agent.c_noise if agent.c_noise else 0.0
+            noise = self.rng.randn(*agent.action.c.shape) * agent.c_noise if agent.c_noise else 0.0
             agent.state.c = agent.action.c + noise      
 
     # get collision forces for any contact between two entities
