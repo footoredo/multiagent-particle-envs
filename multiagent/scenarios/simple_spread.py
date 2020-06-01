@@ -4,9 +4,11 @@ from multiagent.scenario import BaseScenario
 
 
 class SpreadScenario(BaseScenario):
-    def __init__(self, n_agents, seed=None):
+    def __init__(self, n_agents, seed=None, hard_rew=False, soft_rew=True):
         self.n_agents = n_agents
         self._seed = seed
+        self.hard_rew = hard_rew
+        self.soft_rew = soft_rew
 
         super(SpreadScenario, self).__init__()
 
@@ -78,13 +80,19 @@ class SpreadScenario(BaseScenario):
     def reward(self, agent, world):
         # Agents are rewarded based on minimum agent distance to each landmark, penalized for collisions
         rew = 0
+        n = len(world.agents)
         for l in world.landmarks:
-            dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))) for a in world.agents]
-            rew -= min(dists) / len(world.agents)
-        if agent.collide:
-            for a in world.agents:
-                if self.is_collision(a, agent):
-                    rew -= 1
+            dist = min([np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))) for a in world.agents])
+            if self.soft_rew:
+                rew -= dist / n
+            if self.hard_rew:
+                if dist <= agent.size:
+                    rew += 10.0 / n
+            
+        # if agent.collide:
+        #     for a in world.agents:
+        #         if self.is_collision(a, agent):
+        #             rew -= 1
         return rew
 
     def observation(self, agent, world):
